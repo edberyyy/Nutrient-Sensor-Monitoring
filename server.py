@@ -2,6 +2,8 @@ from flask import Flask, jsonify, send_from_directory
 import csv
 from datetime import datetime
 import os
+import threading
+import time
 
 app = Flask(__name__, static_folder='.')
 
@@ -53,6 +55,35 @@ def api_sensor_history(sensor):
     filtered = [row for row in data if row.get('sensor') == sensor]
     return jsonify(filtered)
 
+
+# ===== BACKGROUND SCRAPER =====
+def start_background_scraper():
+    """Run scraper in background thread"""
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from monitor import run_watch_mode
+    
+    print("\n" + "="*60)
+    print("🚀 STARTING BACKGROUND SCRAPER THREAD")
+    print("="*60)
+    print("   Scraper will run every 10 minutes indefinitely")
+    print("="*60 + "\n")
+    
+    try:
+        run_watch_mode(interval=10, duration_minutes=None)
+    except Exception as e:
+        print(f"❌ Scraper error: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+def init_scraper():
+    """Initialize background scraper thread"""
+    scraper_thread = threading.Thread(target=start_background_scraper, daemon=True)
+    scraper_thread.start()
+    print("✅ Scraper thread started")
+
+
 if __name__ == '__main__':
     import os
     port = int(os.getenv('PORT', 5000))
@@ -62,6 +93,9 @@ if __name__ == '__main__':
     print("="*50)
     print(f"   Server running on 0.0.0.0:{port}")
     print("="*50)
+    
+    # Start background scraper thread
+    init_scraper()
     
     try:
         app.run(debug=False, host='0.0.0.0', port=port, threaded=True)
