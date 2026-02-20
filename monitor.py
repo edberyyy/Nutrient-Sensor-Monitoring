@@ -390,49 +390,64 @@ def run_single_check():
         save_to_csv(sensor_name, metrics)
 
 
-def run_watch_mode(interval, duration_minutes=60):
+def run_watch_mode(interval, duration_minutes=None):
     """
-    Run scraping at specified interval and stop after duration.
+    Run scraping at specified interval indefinitely (24/7 mode).
     
     Args:
         interval: Minutes between each scrape
-        duration_minutes: Total runtime in minutes (default: 60 = 1 hour)
+        duration_minutes: Optional - if set, stops after this duration (for testing)
     """
     start_time = time.time()
-    end_time = start_time + (duration_minutes * 60)
+    end_time = start_time + (duration_minutes * 60) if duration_minutes else None
     run_count = 0
-    stop_at = datetime.now() + timedelta(minutes=duration_minutes)
     
-    print(f"\n🚀 Starting auto-scrape mode")
+    print(f"\n🚀 Starting auto-scrape mode (24/7)")
     print(f"   Interval: every {interval} minutes")
-    print(f"   Duration: {duration_minutes} minutes (will stop at {stop_at.strftime('%H:%M:%S')})")
+    if duration_minutes:
+        stop_at = datetime.now() + timedelta(minutes=duration_minutes)
+        print(f"   TEST MODE: Will stop at {stop_at.strftime('%H:%M:%S')}")
+    else:
+        print(f"   Running indefinitely until process restarts")
     
-    while time.time() < end_time:
-        run_count += 1
-        remaining = (end_time - time.time()) / 60
-        print(f"\n⏱️  Run #{run_count} | Time remaining: {remaining:.1f} minutes")
-        
-        run_single_check()
-        
-        # Check if there's enough time for another run
-        if time.time() + (interval * 60) >= end_time:
-            print(f"\n✅ Completed {run_count} scrape(s). Duration limit reached.")
+    while True:
+        if end_time and time.time() >= end_time:
+            print(f"\n✅ Test duration completed ({run_count} scrape(s)).")
             break
             
+        run_count += 1
+        print(f"\n⏱️  Run #{run_count} | Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        try:
+            run_single_check()
+        except Exception as e:
+            print(f"❌ Error during scrape: {e}")
+            print("   Will retry at next interval...")
+        
         print(f"\n💤 Sleeping for {interval} minutes...")
         time.sleep(interval * 60)
-    
-    print(f"\n🏁 Auto-scrape finished! Total runs: {run_count}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--watch", "-w", action="store_true", help="Run in watch mode (auto-scrape)")
-    parser.add_argument("--interval", "-i", type=int, default=POLL_INTERVAL_MINUTES, help="Minutes between scrapes")
-    parser.add_argument("--duration", "-d", type=int, default=60, help="Total duration in minutes (default: 60)")
-    args = parser.parse_args()
+    try:
+        print("="*60)
+        print("MONITOR STARTING UP")
+        print("="*60)
+        
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--watch", "-w", action="store_true", help="Run in watch mode (auto-scrape 24/7)")
+        parser.add_argument("--interval", "-i", type=int, default=POLL_INTERVAL_MINUTES, help="Minutes between scrapes (default: 10)")
+        parser.add_argument("--duration", "-d", type=int, default=None, help="Optional: Total duration in minutes (for testing only)")
+        args = parser.parse_args()
+        
+        print(f"Arguments parsed: watch={args.watch}, interval={args.interval}, duration={args.duration}")
 
-    if args.watch:
-        run_watch_mode(args.interval, args.duration)
-    else:
-        run_single_check()
+        if args.watch:
+            run_watch_mode(args.interval, args.duration)
+        else:
+            run_single_check()
+    except Exception as e:
+        print(f"FATAL ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
