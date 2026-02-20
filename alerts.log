@@ -1,0 +1,88 @@
+[2026-01-26 10:10:59] Low Moisture - Moisture is 0.0% (< 35.0%). Watering needed.
+[2026-01-26 10:10:59] Moisture Drastic Change - Moisture changed by -70.0% (prev 70.0%).
+[2026-01-26 10:10:59] Acidity Drastic Change - pH changed by +1.30 (prev 5.50).
+[2026-01-26 10:12:35] Low Moisture - Moisture is 0.0% (< 35.0%). Watering needed.
+[2026-01-26 10:15:51] Low Moisture - Moisture is 0.0% (< 35.0%). Watering needed.
+[2026-01-26 10:16:51] Low Moisture - Moisture is 0.0% (< 35.0%). Watering needed.
+[2026-01-26 10:34:54] Low Moisture - Moisture is 0.0% (< 35.0%). Watering needed.
+[2026-01-26 10:39:39] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 10:39:39] EC Critical - EC 0 µS/cm is outside safe range.
+[2026-01-26 10:48:42] Moisture Critical - Moisture 88.1% is unsafe. Action required immediately.
+[2026-01-26 10:48:42] Moisture Drastic Change - Moisture changed by +88.1% (prev 0.0%).
+[2026-01-26 10:48:42] EC Out of Range - EC 3128 µS/cm is suboptimal (600-3000 recommended).
+[2026-01-26 10:48:42] EC Drastic Change - Conductivity changed by +3128 µS/cm (prev 0).
+[2026-01-26 10:48:42] Acidity Drastic Change - pH changed by -0.90 (prev 6.80).
+[2026-01-26 11:58:37] Moisture Warning - Moisture 33.0% is suboptimal. Consider adjusting.
+[2026-01-26 11:58:37] Moisture Drastic Change - Moisture changed by -55.1% (prev 88.1%).
+[2026-01-26 11:58:37] EC Critical - EC 33 µS/cm is outside safe range.
+[2026-01-26 11:58:37] EC Drastic Change - Conductivity changed by -3095 µS/cm (prev 3128).
+[2026-01-26 11:58:37] Acidity Drastic Change - pH changed by +1.40 (prev 5.90).
+[2026-01-26 12:01:53] Moisture Warning - Moisture 33.0% is suboptimal. Consider adjusting.
+[2026-01-26 12:01:53] Moisture Drastic Change - Moisture changed by +33.0% (prev 0.0%).
+[2026-01-26 12:01:53] EC Critical - EC 33 µS/cm is outside safe range.
+[2026-01-26 12:01:53] Acidity Drastic Change - pH changed by +0.50 (prev 6.80).
+[2026-01-26 12:04:05] Moisture Warning - Moisture 33.0% is suboptimal. Consider adjusting.
+[2026-01-26 12:04:05] Moisture Drastic Change - Moisture changed by +33.0% (prev 0.0%).
+[2026-01-26 12:04:05] EC Critical - EC 33 µS/cm is outside safe range.
+[2026-01-26 12:04:05] Acidity Drastic Change - pH changed by +0.50 (prev 6.80).
+[2026-01-26 12:05:12] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 12:05:12] Moisture Drastic Change - Moisture changed by -33.0% (prev 33.0%).
+[2026-01-26 12:05:12] EC Critical - EC 33 µS/cm is outside safe range.
+[2026-01-26 12:26:29] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 12:26:29] EC Critical - EC 42 µS/cm is outside safe range.
+[2026-01-26 12:26:29] Acidity Drastic Change - pH changed by -1.10 (prev 7.30).
+[2026-01-26 12:38:00] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 12:38:00] EC Critical - EC 42 µS/cm is outside safe range.
+[2026-01-26 12:58:39] Moisture Drastic Change - Moisture changed by +63.6% (prev 0.0%).
+[2026-01-26 12:58:39] EC Drastic Change - Conductivity changed by +996 µS/cm (prev 42).
+[2026-01-26 12:58:39] Acidity Warning - pH 8.00 is suboptimal (5.5-7.5 recommended).
+[2026-01-26 12:58:39] Acidity Drastic Change - pH changed by +1.80 (prev 6.20).
+[2026-01-26 13:19:35] Acidity Warning - pH 8.00 is suboptimal (5.5-7.5 recommended).
+[2026-01-26 13:40:13] Acidity Warning - pH 8.00 is suboptimal (5.5-7.5 recommended).
+[2026-01-26 13:52:22] Acidity Warning - pH 8.00 is suboptimal (5.5-7.5 recommended).
+[2026-01-26 14:13:06] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 14:13:06] Moisture Drastic Change - Moisture changed by -67.2% (prev 67.2%).
+[2026-01-26 14:13:06] EC Critical - EC 25 µS/cm is outside safe range.
+[2026-01-26 14:13:06] EC Drastic Change - Conductivity changed by -1016 µS/cm (prev 1041).
+[2026-01-26 14:13:06] Acidity Drastic Change - pH changed by -1.60 (prev 8.00).
+[2026-01-26 14:33:51] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 14:33:51] EC Critical - EC 25 µS/cm is outside safe range.
+[2026-01-26 14:54:26] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 14:54:26] EC Critical - EC 24 µS/cm is outside safe range.
+[2026-01-26 15:06:11] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 15:06:11] EC Critical - EC 24 µS/cm is outside safe range.
+[2026-01-26 15:06:44] Acidity Warning - pH 8.00 is suboptimal (5.5-7.5 recommended).
+[2026-01-26 15:14:50] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 15:14:50] EC Critical - EC 24 µS/cm is outside safe range.
+[2026-01-26 15:15:23] Acidity Warning - pH 8.00 is suboptimal (5.5-7.5 recommended).
+[2026-01-26 15:36:06] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 15:36:06] EC Critical - EC 22 µS/cm is outside safe range.
+[2026-01-26 15:37:54] Acidity Drastic Change - pH changed by -1.00 (prev 8.00).
+[2026-01-26 15:58:56] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 15:58:56] EC Critical - EC 22 µS/cm is outside safe range.
+[2026-01-26 15:59:41] Acidity Critical - pH 4.00 is unsafe (safe range 4.5-8.5).
+[2026-01-26 15:59:41] Acidity Drastic Change - pH changed by -3.00 (prev 7.00).
+[2026-01-26 16:13:09] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 16:13:09] EC Critical - EC 21 µS/cm is outside safe range.
+[2026-01-26 16:13:47] Acidity Critical - pH 3.00 is unsafe (safe range 4.5-8.5).
+[2026-01-26 16:13:47] Acidity Drastic Change - pH changed by -1.00 (prev 4.00).
+[2026-01-26 16:15:35] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 16:15:35] EC Critical - EC 21 µS/cm is outside safe range.
+[2026-01-26 16:18:35] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 16:18:35] EC Critical - EC 21 µS/cm is outside safe range.
+[2026-01-26 16:19:22] Acidity Critical - pH 3.00 is unsafe (safe range 4.5-8.5).
+[2026-01-26 16:21:04] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 16:21:04] EC Critical - EC 21 µS/cm is outside safe range.
+[2026-01-26 16:21:50] Moisture Drastic Change - Moisture changed by +25.7% (prev 43.3%).
+[2026-01-26 16:21:50] Acidity Critical - pH 2.00 is unsafe (safe range 4.5-8.5).
+[2026-01-26 16:21:50] Acidity Drastic Change - pH changed by -1.00 (prev 3.00).
+[2026-01-26 16:23:32] Moisture Critical - Moisture 0.0% is unsafe. Action required immediately.
+[2026-01-26 16:23:32] EC Critical - EC 21 µS/cm is outside safe range.
+[2026-01-26 16:24:13] Acidity Critical - pH 2.00 is unsafe (safe range 4.5-8.5).
+[2026-02-09 14:40:59] Moisture Critical - Moisture 91.7% is unsafe. Action required immediately.
+[2026-02-09 14:40:59] Moisture Drastic Change - Moisture changed by +91.7% (prev 0.0%).
+[2026-02-09 14:40:59] EC Drastic Change - Conductivity changed by +1627 µS/cm (prev 21).
+[2026-02-09 14:40:59] Acidity Warning - pH 5.00 is suboptimal (5.5-7.5 recommended).
+[2026-02-09 14:40:59] Acidity Drastic Change - pH changed by -1.30 (prev 6.30).
+[2026-02-09 14:42:50] Moisture Drastic Change - Moisture changed by -20.9% (prev 69.0%).
+[2026-02-09 14:42:50] Acidity Drastic Change - pH changed by +4.30 (prev 2.00).

@@ -1,0 +1,1 @@
+{"sensors": {"Sensor 1": {"metrics": {"temperature_c": 20.7, "moisture_pct": 91.7, "ec_us_cm": 1648.0, "acidity_ph": null}, "time": "2026-02-09T14:50:41.954996"}, "Sensor 2": {"metrics": {"temperature_c": 20.5, "moisture_pct": 48.5, "ec_us_cm": 1193.0, "acidity_ph": null}, "time": "2026-02-09T14:52:30.781622"}}}

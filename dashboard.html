@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Accessibility Menu */
+        .accessibility-menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .accessibility-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .accessibility-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .accessibility-btn span {
+            font-size: 0.8rem;
+        }
+
+        .accessibility-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: rgba(30, 30, 50, 0.95);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 15px;
+            min-width: 220px;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
+
+        .accessibility-dropdown.show {
+            display: block;
+        }
+
+        .accessibility-dropdown h4 {
+            font-size: 0.85rem;
+            color: #8892b0;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .color-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 5px;
+        }
+
+        .color-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .color-option.active {
+            background: rgba(123,44,191,0.3);
+            border: 1px solid rgba(123,44,191,0.5);
+        }
+
+        .color-preview {
+            display: flex;
+            gap: 3px;
+        }
+
+        .color-preview span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0 40px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf, #e040fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #8892b0;
+            font-size: 1rem;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50px;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online { background: #00ff88; }
+        .status-dot.offline { background: #ff4757; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .sensor-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .sensor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .sensor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sensor-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .sensor-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .sensor-status.ok { background: rgba(0,255,136,0.2); color: #00ff88; }
+        .sensor-status.critical { background: rgba(255,71,87,0.2); color: #ff4757; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .metric {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .metric-icon {
+            font-size: 1.3rem;
+            margin-bottom: 6px;
+        }
+
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .metric-value.temp { color: #ff6b6b; }
+        .metric-value.moisture { color: #4dabf7; }
+        .metric-value.ec { color: #ffd43b; }
+        .metric-value.ph { color: #69db7c; }
+        .metric-value.nitrogen { color: #26de81; }
+        .metric-value.phosphorus { color: #fd9644; }
+        .metric-value.potassium { color: #a55eea; }
+
+        .npk-metric {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 480px) {
+            .npk-metric {
+                grid-column: span 1;
+            }
+        }
+
+        .npk-values {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 4px;
+        }
+
+        .npk-item {
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .npk-item.nitrogen { color: #26de81; }
+        .npk-item.phosphorus { color: #fd9644; }
+        .npk-item.potassium { color: #a55eea; }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .history-section {
+            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .history-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .chart-controls select {
+            display: none;
+        }
+
+        .chart-controls select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .custom-select-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .custom-select {
+            background: linear-gradient(135deg, rgba(123,44,191,0.2), rgba(224,64,251,0.2));
+            border: 1px solid rgba(123,44,191,0.5);
+            padding: 10px 15px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        .custom-select:hover {
+            background: linear-gradient(135deg, rgba(123,44,191,0.3), rgba(224,64,251,0.3));
+            border-color: rgba(123,44,191,0.8);
+        }
+
+        .custom-select::after {
+            content: '▼';
+            font-size: 0.7rem;
+            margin-left: auto;
+        }
+
+        .custom-select.open {
+            background: linear-gradient(135deg, rgba(123,44,191,0.4), rgba(224,64,251,0.4));
+            border-color: rgba(123,44,191,1);
+        }
+
+        .custom-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: rgba(26, 26, 46, 0.98);
+            border: 1px solid rgba(123,44,191,0.5);
+            border-radius: 10px;
+            margin-top: 5px;
+            display: none;
+            z-index: 1000;
+            min-width: 100%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .custom-dropdown.open {
+            display: block;
+        }
+
+        .custom-option {
+            padding: 12px 15px;
+            color: #8892b0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .custom-option:last-child {
+            border-bottom: none;
+        }
+
+        .custom-option:hover {
+            background: rgba(123,44,191,0.3);
+            color: #00d4ff;
+        }
+
+        .custom-option.selected {
+            background: rgba(123,44,191,0.4);
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .chart-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .chart-icon {
+            font-size: 1.3rem;
+        }
+
+        .chart-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .chart-unit {
+            font-size: 0.8rem;
+            color: #8892b0;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 10px;
+            border-radius: 15px;
+        }
+
+        .chart-container {
+            height: 200px;
+            position: relative;
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 900px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-card.full-width {
+                grid-column: 1;
+            }
+        }
+
+        .refresh-btn {
+            background: linear-gradient(90deg, #7b2cbf, #e040fb);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .download-btn {
+            background: linear-gradient(90deg, #00b894, #00cec9);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,184,148,0.4);
+        }
+
+        .download-btn.pdf {
+            background: linear-gradient(90deg, #e17055, #d63031);
+        }
+
+        .download-btn.pdf:hover {
+            box-shadow: 0 5px 15px rgba(214,48,49,0.4);
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(123,44,191,0.4);
+        }
+
+        .last-updated {
+            text-align: center;
+            margin-top: 30px;
+            color: #8892b0;
+            font-size: 0.85rem;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #7b2cbf;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8rem; }
+            .status-bar { flex-direction: column; align-items: center; }
+            .accessibility-menu { position: static; margin-bottom: 20px; text-align: center; }
+            .accessibility-dropdown { position: static; margin-top: 10px; }
+        }
+
+        /* Colorblind Modes */
+        /* Deuteranopia (Red-Green Color Blindness - most common) */
+        body.deuteranopia .metric-value.temp { color: #e69f00; }
+        body.deuteranopia .metric-value.moisture { color: #56b4e9; }
+        body.deuteranopia .metric-value.ec { color: #f0e442; }
+        body.deuteranopia .metric-value.ph { color: #009e73; }
+        body.deuteranopia .status-dot.online { background: #56b4e9; }
+        body.deuteranopia .status-dot.offline { background: #e69f00; }
+        body.deuteranopia .sensor-status.ok { background: rgba(86,180,233,0.2); color: #56b4e9; }
+        body.deuteranopia .sensor-status.critical { background: rgba(230,159,0,0.2); color: #e69f00; }
+        body.deuteranopia .status-badge.ok { background: rgba(86,180,233,0.2); color: #56b4e9; }
+        body.deuteranopia .status-badge.critical { background: rgba(230,159,0,0.2); color: #e69f00; }
+
+        /* Protanopia (Red Color Blindness) */
+        body.protanopia .metric-value.temp { color: #cc79a7; }
+        body.protanopia .metric-value.moisture { color: #56b4e9; }
+        body.protanopia .metric-value.ec { color: #f0e442; }
+        body.protanopia .metric-value.ph { color: #0072b2; }
+        body.protanopia .status-dot.online { background: #0072b2; }
+        body.protanopia .status-dot.offline { background: #cc79a7; }
+        body.protanopia .sensor-status.ok { background: rgba(0,114,178,0.2); color: #0072b2; }
+        body.protanopia .sensor-status.critical { background: rgba(204,121,167,0.2); color: #cc79a7; }
+        body.protanopia .status-badge.ok { background: rgba(0,114,178,0.2); color: #0072b2; }
+        body.protanopia .status-badge.critical { background: rgba(204,121,167,0.2); color: #cc79a7; }
+
+        /* Tritanopia (Blue-Yellow Color Blindness) */
+        body.tritanopia .metric-value.temp { color: #d55e00; }
+        body.tritanopia .metric-value.moisture { color: #cc79a7; }
+        body.tritanopia .metric-value.ec { color: #e69f00; }
+        body.tritanopia .metric-value.ph { color: #009e73; }
+        body.tritanopia .status-dot.online { background: #009e73; }
+        body.tritanopia .status-dot.offline { background: #d55e00; }
+        body.tritanopia .sensor-status.ok { background: rgba(0,158,115,0.2); color: #009e73; }
+        body.tritanopia .sensor-status.critical { background: rgba(213,94,0,0.2); color: #d55e00; }
+        body.tritanopia .status-badge.ok { background: rgba(0,158,115,0.2); color: #009e73; }
+        body.tritanopia .status-badge.critical { background: rgba(213,94,0,0.2); color: #d55e00; }
+
+        /* High Contrast Mode */
+        body.highcontrast .metric-value.temp { color: #ffffff; }
+        body.highcontrast .metric-value.moisture { color: #00ffff; }
+        body.highcontrast .metric-value.ec { color: #ffff00; }
+        body.highcontrast .metric-value.ph { color: #ff00ff; }
+        body.highcontrast .status-dot.online { background: #00ff00; }
+        body.highcontrast .status-dot.offline { background: #ff0000; }
+        body.highcontrast .sensor-status.ok { background: rgba(0,255,0,0.3); color: #00ff00; }
+        body.highcontrast .sensor-status.critical { background: rgba(255,0,0,0.3); color: #ff0000; }
+        body.highcontrast .status-badge.ok { background: rgba(0,255,0,0.3); color: #00ff00; }
+        body.highcontrast .status-badge.critical { background: rgba(255,0,0,0.3); color: #ff0000; }
+        body.highcontrast { background: #000000; }
+        body.highcontrast .sensor-card { border: 2px solid #ffffff; }
+        body.highcontrast .history-section { border: 2px solid #ffffff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Accessibility Menu -->
+        <div class="accessibility-menu">
+            <button class="accessibility-btn" onclick="toggleAccessibilityMenu()">
+                👁️ <span>Accessibility</span>
+            </button>
+            <div class="accessibility-dropdown" id="accessibilityDropdown">
+                <h4>Color Vision Mode</h4>
+                <div class="color-option active" data-mode="default" onclick="setColorMode('default')">
+                    <div class="color-preview">
+                        <span style="background: #ff6b6b;"></span>
+                        <span style="background: #4dabf7;"></span>
+                        <span style="background: #ffd43b;"></span>
+                        <span style="background: #69db7c;"></span>
+                    </div>
+                    <span>Default</span>
+                </div>
+                <div class="color-option" data-mode="deuteranopia" onclick="setColorMode('deuteranopia')">
+                    <div class="color-preview">
+                        <span style="background: #e69f00;"></span>
+                        <span style="background: #56b4e9;"></span>
+                        <span style="background: #f0e442;"></span>
+                        <span style="background: #009e73;"></span>
+                    </div>
+                    <span>Deuteranopia (Red-Green)</span>
+                </div>
+                <div class="color-option" data-mode="protanopia" onclick="setColorMode('protanopia')">
+                    <div class="color-preview">
+                        <span style="background: #cc79a7;"></span>
+                        <span style="background: #56b4e9;"></span>
+                        <span style="background: #f0e442;"></span>
+                        <span style="background: #0072b2;"></span>
+                    </div>
+                    <span>Protanopia (Red-Green)</span>
+                </div>
+                <div class="color-option" data-mode="tritanopia" onclick="setColorMode('tritanopia')">
+                    <div class="color-preview">
+                        <span style="background: #d55e00;"></span>
+                        <span style="background: #cc79a7;"></span>
+                        <span style="background: #e69f00;"></span>
+                        <span style="background: #009e73;"></span>
+                    </div>
+                    <span>Tritanopia (Blue-Yellow)</span>
+                </div>
+                <div class="color-option" data-mode="highcontrast" onclick="setColorMode('highcontrast')">
+                    <div class="color-preview">
+                        <span style="background: #ffffff;"></span>
+                        <span style="background: #ffff00;"></span>
+                        <span style="background: #00ffff;"></span>
+                        <span style="background: #ff00ff;"></span>
+                    </div>
+                    <span>High Contrast</span>
+                </div>
+            </div>
+        </div>
+
+        <header>
+            <h1>Sensor Dashboard</h1>
+            <p>Real-time monitoring of Grafana sensor data</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot online" id="sensor1Status"></div>
+                <span id="sensor1Text">Sensor 1: Connected</span>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot online" id="sensor2Status"></div>
+                <span id="sensor2Text">Sensor 2: Connected</span>
+            </div>
+        </div>
+
+        <div class="cards-grid" id="sensorCards">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-header">
+                <h2>Trend Analysis</h2>
+                <div class="chart-controls">
+                    <select id="sensorFilter" onchange="updateCharts()">
+                        <option value="all">All Sensors</option>
+                        <option value="Sensor 1">Sensor 1</option>
+                        <option value="Sensor 2">Sensor 2</option>
+                    </select>
+                    <select id="timeRange" onchange="updateCharts()">
+                        <option value="all">All Time</option>
+                        <option value="24h">Last 24 Hours</option>
+                        <option value="7d">Last 7 Days</option>
+                    </select>
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select" id="sensorFilterCustom">All Sensors</div>
+                        <div class="custom-dropdown" id="sensorFilterDropdown">
+                            <div class="custom-option selected" data-value="all">All Sensors</div>
+                            <div class="custom-option" data-value="Sensor 1">Sensor 1</div>
+                            <div class="custom-option" data-value="Sensor 2">Sensor 2</div>
+                        </div>
+                    </div>
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select" id="timeRangeCustom">All Time</div>
+                        <div class="custom-dropdown" id="timeRangeDropdown">
+                            <div class="custom-option selected" data-value="all">All Time</div>
+                            <div class="custom-option" data-value="24h">Last 24 Hours</div>
+                            <div class="custom-option" data-value="7d">Last 7 Days</div>
+                        </div>
+                    </div>
+                    <button class="refresh-btn" onclick="loadData()">Refresh Data</button>
+                    <button class="download-btn" onclick="downloadCSV()">📥 CSV</button>
+                    <button class="download-btn pdf" onclick="downloadPDF()">📄 PDF</button>
+                </div>
+            </div>
+            
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-icon">🌡️</span>
+                        <h3>Temperature</h3>
+                        <span class="chart-unit">°C</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="tempChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-icon">💧</span>
+                        <h3>Moisture</h3>
+                        <span class="chart-unit">%</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="moistureChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-icon">⚡</span>
+                        <h3>Electric Conductivity</h3>
+                        <span class="chart-unit">µS/cm</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="ecChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-icon">🧪</span>
+                        <h3>pH Level</h3>
+                        <span class="chart-unit">pH</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="phChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <span class="chart-icon">🌱</span>
+                        <h3>NPK Nutrients - Sensor 1</h3>
+                        <span class="chart-unit">mg/kg</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="npkChart1"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <span class="chart-icon">🌱</span>
+                        <h3>NPK Nutrients - Sensor 2</h3>
+                        <span class="chart-unit">mg/kg</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="npkChart2"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="last-updated">Last updated: <span id="lastUpdated">-</span></p>
+    </div>
+
+    <script>
+        // Chart instances
+        let tempChart, moistureChart, ecChart, phChart, npkChart1, npkChart2;
+        let historyData = [];
+
+        // Color schemes
+        const sensorColors = {
+            'Sensor 1': {
+                line: 'rgba(0, 212, 255, 1)',
+                fill: 'rgba(0, 212, 255, 0.1)'
+            },
+            'Sensor 2': {
+                line: 'rgba(224, 64, 251, 1)',
+                fill: 'rgba(224, 64, 251, 0.1)'
+            }
+        };
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: '#8892b0',
+                        usePointStyle: true,
+                        padding: 15,
+                        font: { size: 11 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(26, 26, 46, 0.95)',
+                    titleColor: '#fff',
+                    bodyColor: '#8892b0',
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        displayFormats: {
+                            hour: 'HH:mm',
+                            day: 'MMM d'
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(255,255,255,0.05)'
+                    },
+                    ticks: {
+                        color: '#8892b0',
+                        maxTicksLimit: 6
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255,255,255,0.05)'
+                    },
+                    ticks: {
+                        color: '#8892b0'
+                    }
+                }
+            }
+        };
+
+        function formatValue(val, unit) {
+            if (!val || val === 'NA' || val === '' || val === 'None') return 'N/A';
+            return parseFloat(val).toFixed(1) + unit;
+        }
+
+        function getStatusClass(status) {
+            if (!status || status === 'NA') return 'na';
+            return status.toLowerCase() === 'ok' ? 'ok' : 'critical';
+        }
+
+        function createSensorCard(name, data) {
+            const temp = formatValue(data.temperature_c, '°C');
+            const moisture = formatValue(data.moisture_pct, '%');
+            const ec = formatValue(data.ec_us_cm, ' µS/cm');
+            const ph = formatValue(data.ph, '');
+            const nitrogen = data.nitrogen && data.nitrogen !== 'NA' && data.nitrogen !== '' ? parseFloat(data.nitrogen).toFixed(0) : '-';
+            const phosphorus = data.phosphorus && data.phosphorus !== 'NA' && data.phosphorus !== '' ? parseFloat(data.phosphorus).toFixed(0) : '-';
+            const potassium = data.potassium && data.potassium !== 'NA' && data.potassium !== '' ? parseFloat(data.potassium).toFixed(0) : '-';
+            const status = data.overall_status || 'N/A';
+            const statusClass = getStatusClass(status);
+
+            return `
+                <div class="sensor-card">
+                    <div class="sensor-header">
+                        <span class="sensor-name">${name}</span>
+                        <span class="sensor-status ${statusClass}">${status}</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <div class="metric-icon">🌡️</div>
+                            <div class="metric-value temp">${temp}</div>
+                            <div class="metric-label">Temperature</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-icon">💧</div>
+                            <div class="metric-value moisture">${moisture}</div>
+                            <div class="metric-label">Moisture</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-icon">⚡</div>
+                            <div class="metric-value ec">${ec}</div>
+                            <div class="metric-label">EC</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-icon">🧪</div>
+                            <div class="metric-value ph">${ph}</div>
+                            <div class="metric-label">pH Level</div>
+                        </div>
+                        <div class="metric npk-metric">
+                            <div class="metric-icon">🌱</div>
+                            <div class="npk-values">
+                                <span class="npk-item nitrogen">N: ${nitrogen}</span>
+                                <span class="npk-item phosphorus">P: ${phosphorus}</span>
+                                <span class="npk-item potassium">K: ${potassium}</span>
+                            </div>
+                            <div class="metric-label">NPK (mg/kg)</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createChart(ctx, label, yAxisLabel) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        ...chartOptions.scales,
+                        y: {
+                            ...chartOptions.scales.y,
+                            title: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initCharts() {
+            tempChart = createChart(document.getElementById('tempChart'), 'Temperature', '°C');
+            moistureChart = createChart(document.getElementById('moistureChart'), 'Moisture', '%');
+            ecChart = createChart(document.getElementById('ecChart'), 'EC', 'µS/cm');
+            phChart = createChart(document.getElementById('phChart'), 'pH', 'pH');
+            npkChart1 = createNPKChart(document.getElementById('npkChart1'));
+            npkChart2 = createNPKChart(document.getElementById('npkChart2'));
+        }
+
+        function createNPKChart(ctx) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: { datasets: [] },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        ...chartOptions.scales,
+                        x: {
+                            ...chartOptions.scales.x,
+                            type: 'time',
+                            time: {
+                                displayFormats: {
+                                    hour: 'MMM d HH:mm',
+                                    day: 'MMM d'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...chartOptions.plugins,
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#8892b0',
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function prepareNPKChartData(data, sensorFilter) {
+            const npkColors = {
+                nitrogen: { line: '#26de81', fill: 'rgba(38, 222, 129, 0.1)' },
+                phosphorus: { line: '#fd9644', fill: 'rgba(253, 150, 68, 0.1)' },
+                potassium: { line: '#a55eea', fill: 'rgba(165, 94, 234, 0.1)' }
+            };
+
+            const filteredData = sensorFilter === 'all' 
+                ? data 
+                : data.filter(d => d.sensor === sensorFilter);
+
+            const datasets = [];
+            
+            ['nitrogen', 'phosphorus', 'potassium'].forEach(nutrient => {
+                const nutrientData = filteredData
+                    .filter(d => d[nutrient] && d[nutrient] !== '' && d[nutrient] !== 'NA')
+                    .map(d => ({
+                        x: new Date(d.timestamp_iso),
+                        y: parseFloat(d[nutrient])
+                    }))
+                    .sort((a, b) => a.x - b.x);
+
+                if (nutrientData.length > 0) {
+                    datasets.push({
+                        label: nutrient.charAt(0).toUpperCase() + nutrient.slice(1) + ' (' + nutrient.charAt(0).toUpperCase() + ')',
+                        data: nutrientData,
+                        borderColor: npkColors[nutrient].line,
+                        backgroundColor: npkColors[nutrient].fill,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        borderWidth: 2
+                    });
+                }
+            });
+
+            return datasets;
+        }
+
+        function filterDataByTime(data, range) {
+            if (range === 'all') return data;
+            
+            const now = new Date();
+            let cutoff;
+            
+            if (range === '24h') {
+                cutoff = new Date(now - 24 * 60 * 60 * 1000);
+            } else if (range === '7d') {
+                cutoff = new Date(now - 7 * 24 * 60 * 60 * 1000);
+            }
+            
+            return data.filter(row => new Date(row.timestamp_iso) >= cutoff);
+        }
+
+        function prepareChartData(data, field, sensorFilter) {
+            const sensors = sensorFilter === 'all' 
+                ? [...new Set(data.map(d => d.sensor))]
+                : [sensorFilter];
+            
+            return sensors.map(sensor => {
+                const sensorData = data
+                    .filter(d => d.sensor === sensor)
+                    .filter(d => d[field] && d[field] !== '' && d[field] !== 'NA')
+                    .map(d => ({
+                        x: new Date(d.timestamp_iso),
+                        y: parseFloat(d[field])
+                    }))
+                    .sort((a, b) => a.x - b.x);
+                
+                const colors = sensorColors[sensor] || { line: '#888', fill: 'rgba(136,136,136,0.1)' };
+                
+                return {
+                    label: sensor,
+                    data: sensorData,
+                    borderColor: colors.line,
+                    backgroundColor: colors.fill,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    borderWidth: 2
+                };
+            });
+        }
+
+        function updateCharts() {
+            const sensorFilter = document.getElementById('sensorFilter').value;
+            const timeRange = document.getElementById('timeRange').value;
+            
+            const filteredData = filterDataByTime(historyData, timeRange);
+            
+            tempChart.data.datasets = prepareChartData(filteredData, 'temperature_c', sensorFilter);
+            moistureChart.data.datasets = prepareChartData(filteredData, 'moisture_pct', sensorFilter);
+            ecChart.data.datasets = prepareChartData(filteredData, 'ec_us_cm', sensorFilter);
+            phChart.data.datasets = prepareChartData(filteredData, 'ph', sensorFilter);
+            npkChart1.data.datasets = prepareNPKChartData(filteredData, 'Sensor 1');
+            npkChart2.data.datasets = prepareNPKChartData(filteredData, 'Sensor 2');
+            
+            tempChart.update('none');
+            moistureChart.update('none');
+            ecChart.update('none');
+            phChart.update('none');
+            npkChart1.update('none');
+            npkChart2.update('none');
+        }
+
+        async function loadData() {
+            try {
+                // Load latest readings
+                const latestRes = await fetch('/api/latest');
+                const latest = await latestRes.json();
+
+                const cardsContainer = document.getElementById('sensorCards');
+                cardsContainer.innerHTML = '';
+
+                // Track connected sensors
+                const connectedSensors = new Set();
+
+                for (const [name, data] of Object.entries(latest)) {
+                    cardsContainer.innerHTML += createSensorCard(name, data);
+                    connectedSensors.add(name);
+                }
+
+                // Update sensor connection status
+                const sensor1El = document.getElementById('sensor1Status');
+                const sensor1Text = document.getElementById('sensor1Text');
+                if (connectedSensors.has('Sensor 1')) {
+                    sensor1El.className = 'status-dot online';
+                    sensor1Text.textContent = 'Sensor 1: Connected';
+                } else {
+                    sensor1El.className = 'status-dot offline';
+                    sensor1Text.textContent = 'Sensor 1: Disconnected';
+                }
+
+                const sensor2El = document.getElementById('sensor2Status');
+                const sensor2Text = document.getElementById('sensor2Text');
+                if (connectedSensors.has('Sensor 2')) {
+                    sensor2El.className = 'status-dot online';
+                    sensor2Text.textContent = 'Sensor 2: Connected';
+                } else {
+                    sensor2El.className = 'status-dot offline';
+                    sensor2Text.textContent = 'Sensor 2: Disconnected';
+                }
+
+                // Load history
+                const historyRes = await fetch('/api/history');
+                historyData = await historyRes.json();
+
+                // Update charts
+                updateCharts();
+
+                // Update timestamp
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('sensor1Status').className = 'status-dot offline';
+                document.getElementById('sensor1Text').textContent = 'Sensor 1: Disconnected';
+                document.getElementById('sensor2Status').className = 'status-dot offline';
+                document.getElementById('sensor2Text').textContent = 'Sensor 2: Disconnected';
+            }
+        }
+
+        // Accessibility Functions
+        function toggleAccessibilityMenu() {
+            const dropdown = document.getElementById('accessibilityDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function setColorMode(mode) {
+            // Remove all color mode classes
+            document.body.classList.remove('default', 'deuteranopia', 'protanopia', 'tritanopia', 'highcontrast');
+            
+            // Add new mode class (except for default)
+            if (mode !== 'default') {
+                document.body.classList.add(mode);
+            }
+            
+            // Update active state in menu
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.mode === mode) {
+                    opt.classList.add('active');
+                }
+            });
+            
+            // Save preference
+            localStorage.setItem('colorMode', mode);
+        }
+
+        // Custom Dropdown Functions
+        function initCustomDropdowns() {
+            // Sensor Filter Dropdown
+            document.getElementById('sensorFilterCustom').addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dropdown = document.getElementById('sensorFilterDropdown');
+                dropdown.classList.toggle('open');
+                this.classList.toggle('open');
+                document.getElementById('timeRangeDropdown').classList.remove('open');
+                document.getElementById('timeRangeCustom').classList.remove('open');
+            });
+
+            document.querySelectorAll('#sensorFilterDropdown .custom-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const value = this.dataset.value;
+                    document.getElementById('sensorFilter').value = value;
+                    document.getElementById('sensorFilterCustom').textContent = this.textContent;
+                    document.getElementById('sensorFilterDropdown').classList.remove('open');
+                    document.getElementById('sensorFilterCustom').classList.remove('open');
+                    document.querySelectorAll('#sensorFilterDropdown .custom-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    updateCharts();
+                });
+            });
+
+            // Time Range Dropdown
+            document.getElementById('timeRangeCustom').addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dropdown = document.getElementById('timeRangeDropdown');
+                dropdown.classList.toggle('open');
+                this.classList.toggle('open');
+                document.getElementById('sensorFilterDropdown').classList.remove('open');
+                document.getElementById('sensorFilterCustom').classList.remove('open');
+            });
+
+            document.querySelectorAll('#timeRangeDropdown .custom-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const value = this.dataset.value;
+                    document.getElementById('timeRange').value = value;
+                    document.getElementById('timeRangeCustom').textContent = this.textContent;
+                    document.getElementById('timeRangeDropdown').classList.remove('open');
+                    document.getElementById('timeRangeCustom').classList.remove('open');
+                    document.querySelectorAll('#timeRangeDropdown .custom-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    updateCharts();
+                });
+            });
+
+            document.addEventListener('click', function() {
+                document.getElementById('sensorFilterDropdown').classList.remove('open');
+                document.getElementById('timeRangeDropdown').classList.remove('open');
+                document.getElementById('sensorFilterCustom').classList.remove('open');
+                document.getElementById('timeRangeCustom').classList.remove('open');
+            });
+        }
+
+        // Load saved color mode on page load
+        function loadSavedColorMode() {
+            const savedMode = localStorage.getItem('colorMode') || 'default';
+            setColorMode(savedMode);
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.querySelector('.accessibility-menu');
+            if (!menu.contains(e.target)) {
+                document.getElementById('accessibilityDropdown').classList.remove('show');
+            }
+        });
+
+        // Download CSV function
+        function downloadCSV() {
+            if (historyData.length === 0) {
+                alert('No data available to download');
+                return;
+            }
+
+            const sensorFilter = document.getElementById('sensorFilter').value;
+            const timeRange = document.getElementById('timeRange').value;
+            let filteredData = filterDataByTime(historyData, timeRange);
+            
+            if (sensorFilter !== 'all') {
+                filteredData = filteredData.filter(row => row.sensor === sensorFilter);
+            }
+
+            // CSV headers
+            const headers = ['Timestamp', 'Sensor', 'Temperature (°C)', 'Moisture (%)', 'EC (µS/cm)', 'pH', 'Nitrogen (mg/kg)', 'Phosphorus (mg/kg)', 'Potassium (mg/kg)', 'Status'];
+            
+            // CSV rows
+            const rows = filteredData.map(row => [
+                row.timestamp_iso,
+                row.sensor,
+                row.temperature_c || 'N/A',
+                row.moisture_pct || 'N/A',
+                row.ec_us_cm || 'N/A',
+                row.ph || 'N/A',
+                row.nitrogen || 'N/A',
+                row.phosphorus || 'N/A',
+                row.potassium || 'N/A',
+                row.overall_status || 'N/A'
+            ]);
+
+            // Create CSV content
+            let csvContent = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+
+            // Download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `sensor_data_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Download PDF function
+        function downloadPDF() {
+            if (historyData.length === 0) {
+                alert('No data available to download');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const sensorFilter = document.getElementById('sensorFilter').value;
+            const timeRange = document.getElementById('timeRange').value;
+            let filteredData = filterDataByTime(historyData, timeRange);
+            
+            if (sensorFilter !== 'all') {
+                filteredData = filteredData.filter(row => row.sensor === sensorFilter);
+            }
+
+            // Title
+            doc.setFontSize(20);
+            doc.setTextColor(123, 44, 191);
+            doc.text('Sensor Dashboard Report', 14, 22);
+
+            // Subtitle
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+            doc.text(`Filter: ${sensorFilter === 'all' ? 'All Sensors' : sensorFilter} | Time Range: ${timeRange === 'all' ? 'All Time' : timeRange}`, 14, 36);
+
+            // Summary section
+            doc.setFontSize(14);
+            doc.setTextColor(0);
+            doc.text('Summary', 14, 48);
+
+            // Calculate averages
+            const calcAvg = (field) => {
+                const values = filteredData.map(r => parseFloat(r[field])).filter(v => !isNaN(v));
+                return values.length > 0 ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2) : 'N/A';
+            };
+
+            doc.setFontSize(10);
+            doc.text(`Total Records: ${filteredData.length}`, 14, 56);
+            doc.text(`Avg Temperature: ${calcAvg('temperature_c')}°C`, 14, 62);
+            doc.text(`Avg Moisture: ${calcAvg('moisture_pct')}%`, 14, 68);
+            doc.text(`Avg EC: ${calcAvg('ec_us_cm')} µS/cm`, 80, 56);
+            doc.text(`Avg pH: ${calcAvg('ph')}`, 80, 62);
+            doc.text(`Avg N: ${calcAvg('nitrogen')} mg/kg`, 140, 56);
+            doc.text(`Avg P: ${calcAvg('phosphorus')} mg/kg`, 140, 62);
+            doc.text(`Avg K: ${calcAvg('potassium')} mg/kg`, 140, 68);
+
+            // Data table
+            doc.setFontSize(14);
+            doc.text('Detailed Data', 14, 82);
+
+            const tableData = filteredData.slice(-50).map(row => [
+                new Date(row.timestamp_iso).toLocaleString(),
+                row.sensor,
+                row.temperature_c || 'N/A',
+                row.moisture_pct || 'N/A',
+                row.ec_us_cm || 'N/A',
+                row.ph || 'N/A',
+                row.nitrogen || 'N/A',
+                row.phosphorus || 'N/A',
+                row.potassium || 'N/A'
+            ]);
+
+            doc.autoTable({
+                head: [['Time', 'Sensor', 'Temp', 'Moist', 'EC', 'pH', 'N', 'P', 'K']],
+                body: tableData,
+                startY: 88,
+                styles: { fontSize: 7, cellPadding: 2 },
+                headStyles: { fillColor: [123, 44, 191] },
+                alternateRowStyles: { fillColor: [245, 245, 245] }
+            });
+
+            // Save PDF
+            doc.save(`sensor_report_${new Date().toISOString().split('T')[0]}.pdf`);
+        }
+
+        // Initialize charts when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            initCustomDropdowns();
+            loadData();
+            loadSavedColorMode();
+        });
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>

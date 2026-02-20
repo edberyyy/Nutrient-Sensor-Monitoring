@@ -1,0 +1,42 @@
+SMS-Advance 5
+Last 3 hours
+Refresh
+HOME
+SINGLE SENSOR - UNITS
+5
+1
+2
+4
+3
+DUAL SENSOR - UNITS
+9
+8
+7
+6
+Smart Sensor 5
+13.2 V
+2026-02-09 16:41:40
+GROWING PARAMETERS
+N
+K
+141 mg/L
+368 mg/L
+373 mg/L
+P
+i_nitrogen
+j_phosphorus
+k_potassium
+20.5 °C
+TEMPERATURE
+Temperature
+41.2%
+MOISTURE
+Moisture
+863 µS/cm
+ELECTRIC CONDUCTIVITY
+Electric Conductivity
+6.10
+ACIDITY
+Soil pH
+LITE MODE
+Powered by
