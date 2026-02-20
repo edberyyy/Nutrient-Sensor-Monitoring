@@ -54,9 +54,18 @@ def api_sensor_history(sensor):
     return jsonify(filtered)
 
 if __name__ == '__main__':
+    import os
+    port = int(os.getenv('PORT', 5000))
+    
     print("="*50)
     print("🌐 SENSOR DASHBOARD SERVER")
     print("="*50)
-    print("   Open http://localhost:5000 in your browser")
+    print(f"   Server running on 0.0.0.0:{port}")
     print("="*50)
-    app.run(debug=False, port=5000)
+    
+    try:
+        app.run(debug=False, host='0.0.0.0', port=port, threaded=True)
+    except Exception as e:
+        print(f"ERROR: {e}")
+        import traceback
+        traceback.print_exc()
