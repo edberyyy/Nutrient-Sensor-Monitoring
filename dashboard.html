@@ -1138,12 +1138,14 @@
                     throw new Error(`History API error: ${historyRes.status}`);
                 }
                 historyData = await historyRes.json();
+                console.log('History data loaded:', historyData.length, 'records');
 
                 // Update charts
                 updateCharts();
 
-                // Update timestamp
-                document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+                // Update timestamp with record count
+                const recordCount = historyData.length;
+                document.getElementById('lastUpdated').textContent = `Last updated: ${new Date().toLocaleString()} | ${recordCount} historical records`;
 
             } catch (error) {
                 console.error('Error loading data:', error);

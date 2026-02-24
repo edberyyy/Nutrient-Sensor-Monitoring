@@ -1,0 +1,33 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# IMPORTANT: DO NOT IGNORE THESE FILES
+# They contain historical data and configuration needed for Railway deployment
+!readings_history.csv
+!readings_history_backup.csv
+!last_readings.json
+!sensor1_text.txt
+!sensor2_text.txt
