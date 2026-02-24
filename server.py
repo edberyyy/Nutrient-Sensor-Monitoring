@@ -9,18 +9,53 @@ app = Flask(__name__, static_folder='.')
 
 CSV_FILE = "readings_history.csv"
 
+def ensure_csv_initialized():
+    """Ensure CSV file exists with headers"""
+    if not os.path.exists(CSV_FILE):
+        print(f"   [*] Initializing {CSV_FILE}...")
+        with open(CSV_FILE, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                'timestamp_iso', 'sensor', 'temperature_c', 'moisture_pct',
+                'ec_us_cm', 'ph', 'nitrogen', 'phosphorus', 'potassium',
+                'temperature_status', 'moisture_status',
+                'ec_status', 'ph_status', 'overall_status'
+            ])
+        print(f"   [OK] CSV initialized with headers")
+    else:
+        # Check if CSV has headers (more than 0 lines)
+        with open(CSV_FILE, 'r', newline='') as f:
+            line_count = sum(1 for line in f)
+        if line_count == 0:
+            print(f"   [*] CSV file empty, adding headers...")
+            with open(CSV_FILE, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    'timestamp_iso', 'sensor', 'temperature_c', 'moisture_pct',
+                    'ec_us_cm', 'ph', 'nitrogen', 'phosphorus', 'potassium',
+                    'temperature_status', 'moisture_status',
+                    'ec_status', 'ph_status', 'overall_status'
+                ])
+            print(f"   [OK] Headers added to CSV")
+
 def read_csv_data():
     """Read all data from CSV file"""
+    ensure_csv_initialized()
     data = []
-    if os.path.exists(CSV_FILE):
-        with open(CSV_FILE, 'r', newline='') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                # Ensure NPK fields exist (for backward compatibility)
-                row.setdefault('nitrogen', 'NA')
-                row.setdefault('phosphorus', 'NA')
-                row.setdefault('potassium', 'NA')
-                data.append(row)
+    try:
+        if os.path.exists(CSV_FILE):
+            with open(CSV_FILE, 'r', newline='') as f:
+                reader = csv.DictReader(f)
+                if reader is not None:
+                    for row in reader:
+                        if row:  # Skip empty rows
+                            # Ensure NPK fields exist (for backward compatibility)
+                            row.setdefault('nitrogen', 'NA')
+                            row.setdefault('phosphorus', 'NA')
+                            row.setdefault('potassium', 'NA')
+                            data.append(row)
+    except Exception as e:
+        print(f"   [!] Error reading CSV: {e}")
     return data
 
 def get_latest_readings():
@@ -61,18 +96,27 @@ def start_background_scraper():
     """Run scraper in background thread"""
     import sys
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from monitor import run_watch_mode
+    from monitor import run_watch_mode, run_single_check
     
     print("\n" + "="*60)
-    print("🚀 STARTING BACKGROUND SCRAPER THREAD")
+    print("STARTING BACKGROUND SCRAPER")
     print("="*60)
-    print("   Scraper will run every 10 minutes indefinitely")
+    
+    # Run immediate first check to populate CSV
+    print("   [*] Running initial scrape...")
+    try:
+        run_single_check()
+        print("   [OK] Initial scrape complete")
+    except Exception as e:
+        print(f"   [!] Initial scrape failed: {e}")
+    
+    print("   Scraper will continue every 10 minutes")
     print("="*60 + "\n")
     
     try:
         run_watch_mode(interval=10, duration_minutes=None)
     except Exception as e:
-        print(f"❌ Scraper error: {e}")
+        print(f"ERROR: Scraper error: {e}")
         import traceback
         traceback.print_exc()
 
@@ -81,7 +125,7 @@ def init_scraper():
     """Initialize background scraper thread"""
     scraper_thread = threading.Thread(target=start_background_scraper, daemon=True)
     scraper_thread.start()
-    print("✅ Scraper thread started")
+    print("[OK] Scraper thread initialized")
 
 
 if __name__ == '__main__':
@@ -89,10 +133,13 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     
     print("="*50)
-    print("🌐 SENSOR DASHBOARD SERVER")
+    print("SENSOR DASHBOARD SERVER STARTING")
     print("="*50)
-    print(f"   Server running on 0.0.0.0:{port}")
+    print(f"   Port: 0.0.0.0:{port}")
     print("="*50)
+    
+    # Ensure CSV is initialized first
+    ensure_csv_initialized()
     
     # Start background scraper thread
     init_scraper()
