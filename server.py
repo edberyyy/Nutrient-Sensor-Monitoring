@@ -76,12 +76,16 @@ def index():
 @app.route('/api/latest')
 def api_latest():
     """Get latest readings for all sensors"""
-    return jsonify(get_latest_readings())
+    latest = get_latest_readings()
+    print(f"[API] /api/latest called, returning {len(latest)} sensors")
+    return jsonify(latest)
 
 @app.route('/api/history')
 def api_history():
     """Get all historical readings"""
-    return jsonify(read_csv_data())
+    data = read_csv_data()
+    print(f"[API] /api/history called, returning {len(data)} rows")
+    return jsonify(data)
 
 @app.route('/api/history/<sensor>')
 def api_sensor_history(sensor):
@@ -89,6 +93,27 @@ def api_sensor_history(sensor):
     data = read_csv_data()
     filtered = [row for row in data if row.get('sensor') == sensor]
     return jsonify(filtered)
+
+@app.route('/api/debug')
+def api_debug():
+    """Debug endpoint - returns diagnostic info"""
+    try:
+        latest = get_latest_readings()
+        csv_data = read_csv_data()
+        return jsonify({
+            'status': 'OK',
+            'csv_file_exists': os.path.exists(CSV_FILE),
+            'csv_rows': len(csv_data),
+            'sensors_in_api': list(latest.keys()),
+            'latest_readings': latest,
+            'last_row_sensor1': next((r for r in reversed(csv_data) if r.get('sensor') == 'Sensor 1'), None),
+            'last_row_sensor2': next((r for r in reversed(csv_data) if r.get('sensor') == 'Sensor 2'), None),
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'ERROR',
+            'error': str(e)
+        }), 500
 
 
 # ===== BACKGROUND SCRAPER =====

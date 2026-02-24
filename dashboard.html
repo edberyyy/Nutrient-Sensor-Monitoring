@@ -1089,7 +1089,13 @@
             try {
                 // Load latest readings
                 const latestRes = await fetch('/api/latest');
+                
+                if (!latestRes.ok) {
+                    throw new Error(`API error: ${latestRes.status} ${latestRes.statusText}`);
+                }
+                
                 const latest = await latestRes.json();
+                console.log('API /api/latest response:', latest);
 
                 const cardsContainer = document.getElementById('sensorCards');
                 cardsContainer.innerHTML = '';
@@ -1100,7 +1106,10 @@
                 for (const [name, data] of Object.entries(latest)) {
                     cardsContainer.innerHTML += createSensorCard(name, data);
                     connectedSensors.add(name);
+                    console.log('Added sensor:', name);
                 }
+
+                console.log('Connected sensors:', Array.from(connectedSensors));
 
                 // Update sensor connection status
                 const sensor1El = document.getElementById('sensor1Status');
@@ -1125,6 +1134,9 @@
 
                 // Load history
                 const historyRes = await fetch('/api/history');
+                if (!historyRes.ok) {
+                    throw new Error(`History API error: ${historyRes.status}`);
+                }
                 historyData = await historyRes.json();
 
                 // Update charts
@@ -1135,6 +1147,7 @@
 
             } catch (error) {
                 console.error('Error loading data:', error);
+                console.error('Error details:', error.message);
                 document.getElementById('sensor1Status').className = 'status-dot offline';
                 document.getElementById('sensor1Text').textContent = 'Sensor 1: Disconnected';
                 document.getElementById('sensor2Status').className = 'status-dot offline';
