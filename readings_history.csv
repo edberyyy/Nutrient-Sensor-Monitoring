@@ -55,3 +55,4 @@ timestamp_iso,sensor,temperature_c,moisture_pct,ec_us_cm,ph,nitrogen,phosphorus,
 2026-02-24T12:54:07,Sensor 2,20.1,30.8,504.0,6.0,66.0,200.0,193.0,OK,OK,OK,OK,OK
 2026-02-24T12:54:49,Sensor 1,NA,NA,NA,NA,NA,NA,NA,OK,NA,NA,NA,OK
 2026-02-24T12:55:16,Sensor 2,20.1,30.8,504.0,6.0,66.0,200.0,193.0,OK,OK,OK,OK,OK
+2026-02-24T13:04:36,Sensor 1,NA,NA,NA,NA,NA,NA,NA,OK,NA,NA,NA,OK

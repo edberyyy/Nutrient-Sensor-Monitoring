@@ -166,6 +166,10 @@ if __name__ == '__main__':
     # Ensure CSV is initialized first
     ensure_csv_initialized()
     
+    # Load and verify data from CSV
+    initial_data = read_csv_data()
+    print(f"   [OK] Loaded {len(initial_data)} historical data rows")
+    
     # Start background scraper thread
     init_scraper()
     
