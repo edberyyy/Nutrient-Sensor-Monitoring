@@ -1,0 +1,44 @@
+SMS-Advance 2
+Last 24 hours
+Refresh
+HOME
+SINGLE SENSOR - UNITS
+5
+1
+2
+4
+3
+DUAL SENSOR - UNITS
+9
+8
+7
+6
+Smart Sensor 2
+Field not found
+Double click to set text
+GROWING PARAMETERS
+N
+K
+Field not found
+Field not found
+Field not found
+P
+No data
+Field not found
+TEMPERATURE
+Soil Temperature
+No data
+Field not found
+MOISTURE
+Soil Moisture
+No data
+Field not found
+ELECTRIC CONDUCTIVITY
+Electric Conductivity
+No data
+Field not found
+ACIDITY
+Soil pH
+No data
+LITE MODE
+Powered by

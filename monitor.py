@@ -52,6 +52,12 @@ def get_dashboard_data(url, name="Dashboard"):
 
         all_text = page.locator("body").inner_text()
         browser.close()
+        
+        # Check for "No data" indicators
+        if "no data" in all_text.lower():
+            no_data_count = all_text.lower().count("no data")
+            print(f"   ⚠️  WARNING: Found {no_data_count} 'No data' indicator(s) on dashboard")
+        
         return all_text
 
 
@@ -66,8 +72,16 @@ def extract_parameters(page_text):
         'Acidity': 'N/A',
         'Nitrogen': 'N/A',
         'Phosphorus': 'N/A',
-        'Potassium': 'N/A'
+        'Potassium': 'N/A',
+        '_data_quality': 'GOOD'  # Track data quality
     }
+
+    # Check for global "No data" or offline indicators
+    if "no data" in page_text.lower() or "field not found" in page_text.lower():
+        no_data_indicators = page_text.lower().count("no data") + page_text.lower().count("field not found")
+        if no_data_indicators > 3:
+            results['_data_quality'] = 'POOR_NO_DATA'
+            print(f"   ⚠️  Data quality warning: {no_data_indicators} 'no data'/'field not found' indicators detected")
 
     if re.search(r'GROWING\s*PARAMETERS', page_text, re.IGNORECASE):
         results['Growing Parameters'] = '✓ Section Found'
@@ -157,20 +171,24 @@ def extract_parameters(page_text):
         # Extract all mg/L values in order
         mg_values = re.findall(r'(\d+\.?\d*)\s*mg/L', npk_text, re.IGNORECASE)
         
-        # Grafana layout: N, K, [N_val], [K_val], [P_val], P
-        # Map values based on position and labels
+        print(f"   🧪 NPK extraction: Found {len(mg_values)} mg/L values: {mg_values}")
+        
+        # Grafana layout: N label, K label, [N_val], [K_val], [P_val], P label
+        # Map values based on position: 1st=N, 2nd=K, 3rd=P
         if len(mg_values) >= 3:
-            # First value after N/K is typically N
             results['Nitrogen'] = f"{mg_values[0]} mg/kg"
-            # Third value (before P label) is typically P
-            results['Phosphorus'] = f"{mg_values[2]} mg/kg"
-            # Second value is typically K
             results['Potassium'] = f"{mg_values[1]} mg/kg"
+            results['Phosphorus'] = f"{mg_values[2]} mg/kg"
+            print(f"   ✓ NPK extracted: N={mg_values[0]}, K={mg_values[1]}, P={mg_values[2]}")
         elif len(mg_values) == 2:
             results['Nitrogen'] = f"{mg_values[0]} mg/kg"
             results['Phosphorus'] = f"{mg_values[1]} mg/kg"
+            print(f"   ℹ️  Only 2 NPK values found")
         elif len(mg_values) == 1:
             results['Nitrogen'] = f"{mg_values[0]} mg/kg"
+            print(f"   ⚠️  Only 1 NPK value found")
+        else:
+            print(f"   ⚠️  No NPK values found in GROWING PARAMETERS section")
 
     # Fallback: Nitrogen (N) patterns
     if results['Nitrogen'] == 'N/A':
@@ -295,10 +313,43 @@ def build_metrics(results):
     }
 
 
+# -------- DATA VALIDATION --------
+
+def validate_metrics(metrics, sensor_name):
+    """Validate extracted metrics are reasonable"""
+    issues = []
+    
+    temp = metrics.get('temperature_c')
+    if temp is not None and (temp < -40 or temp > 60):
+        issues.append(f"Temperature {temp}°C seems unrealistic")
+    
+    moisture = metrics.get('moisture_pct')
+    if moisture is not None and (moisture < 0 or moisture > 100):
+        issues.append(f"Moisture {moisture}% is out of range")
+    
+    ec = metrics.get('ec_us_cm')
+    if ec is not None and (ec < 0 or ec > 5000):
+        issues.append(f"EC {ec} µS/cm seems extreme")
+    
+    ph = metrics.get('acidity_ph')
+    if ph is not None and (ph <= 0 or ph > 14):
+        issues.append(f"pH {ph} is out of valid range")
+    
+    if issues:
+        print(f"   ⚠️  Validation warnings for {sensor_name}:")
+        for issue in issues:
+            print(f"      - {issue}")
+        return False
+    return True
+
+
 # -------- CSV SAVE --------
 
 def save_to_csv(sensor_name, metrics):
     file_exists = os.path.isfile(CSV_FILE)
+    
+    # Validate before saving
+    is_valid = validate_metrics(metrics, sensor_name)
     
     with open(CSV_FILE, mode='a', newline='') as f:
         writer = csv.writer(f)
@@ -349,30 +400,40 @@ def save_to_csv(sensor_name, metrics):
             overall_status
         ])
     
-    print(f"💾 Saved to {CSV_FILE}")
+    status_badge = '✓' if is_valid else '⚠️'
+    print(f"   {status_badge} Saved to {CSV_FILE}")
 
 
 # -------- TERMINAL DISPLAY --------
 
 def display_terminal(sensor, results, metrics):
-    print("\n" + "-"*40)
+    print("\n" + "-"*50)
     print(f"📊 {sensor}")
-    print("-"*40)
+    print("-"*50)
+
+    # Data quality indicator
+    data_quality = results.pop('_data_quality', 'GOOD')
+    quality_icon = '✓' if data_quality == 'GOOD' else '⚠️'
+    print(f"{quality_icon} Data Quality: {data_quality}")
+    print()
 
     for k, v in results.items():
         print(f"{k:25}: {v}")
     
-    # Highlight NPK extraction status
+    # Highlight NPK extraction status with validation
     print("\n🌱 NPK Status:")
-    print(f"   Nitrogen (N):   {results.get('Nitrogen', 'N/A')}")
-    print(f"   Phosphorus (P): {results.get('Phosphorus', 'N/A')}")
-    print(f"   Potassium (K):  {results.get('Potassium', 'N/A')}")
+    npk_complete = all(results.get(x, 'N/A') != 'N/A' for x in ['Nitrogen', 'Phosphorus', 'Potassium'])
+    npk_icon = '✓' if npk_complete else '⚠️'
+    print(f"   {npk_icon} Nitrogen (N):   {results.get('Nitrogen', 'N/A')}")
+    print(f"   {npk_icon} Phosphorus (P): {results.get('Phosphorus', 'N/A')}")
+    print(f"   {npk_icon} Potassium (K):  {results.get('Potassium', 'N/A')}")
 
-    print("\nParsed numeric values:")
+    print("\n📈 Parsed numeric values:")
     for k, v in metrics.items():
-        print(f"{k:25}: {v}")
+        check = '✓' if v is not None else '✗'
+        print(f"   {check} {k:23}: {v}")
 
-    print("-"*40)
+    print("-"*50)
 
 
 # -------- MAIN --------
